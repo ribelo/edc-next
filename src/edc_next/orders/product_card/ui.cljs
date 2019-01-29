@@ -1,4 +1,4 @@
-(ns edc-next.ec-orders.product-card.ui
+(ns edc-next.orders.product-card.ui
   (:require [reagent.core :as r]
             [reagent.ratom :refer [reaction]]
             [re-frame.core :as rf]
@@ -41,7 +41,7 @@
   (let [show-dialog? (r/atom false)]
     (fn [{stock :qty :keys [optimal pace] :as product} qty]
       (let [accent @(rf/subscribe [:theme/get :colors :accent])
-            doc-id @(rf/subscribe [:ec-orders/selected-document.id])
+            doc-id @(rf/subscribe [:orders/selected-document.id])
             missing-qty (- optimal (max 0 stock))]
         [rn/view {:style {:flex 1}}
          ;[supply-input-dialog product qty show-dialog?]
@@ -55,11 +55,11 @@
             [rnp/icon-button {:icon          "remove"
                               :color         accent
                               :on-press      #(if doc-id
-                                                (rf/dispatch [:ec-orders/document.supply-days.dec doc-id product qty])
-                                                (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                                (rf/dispatch [:orders/document.supply-days.dec doc-id product qty])
+                                                (rf/dispatch [:orders/show-documents-dialog true]))
                               :on-long-press #(if doc-id
-                                                (rf/dispatch [:ec-orders/change-document.qty doc-id product 0])
-                                                (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                                (rf/dispatch [:orders/change-document.qty doc-id product 0])
+                                                (rf/dispatch [:orders/show-documents-dialog true]))
                               :style         {:margin 8}}])
           [rnp/touchable-ripple {:on-press #(reset! show-dialog? true)
                                  :style    {:flex        1
@@ -72,19 +72,19 @@
             [rnp/icon-button {:icon          "add"
                               :color         accent
                               :on-press      #(if doc-id
-                                                (rf/dispatch [:ec-orders/document.supply-days.inc doc-id product qty])
-                                                (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                                (rf/dispatch [:orders/document.supply-days.inc doc-id product qty])
+                                                (rf/dispatch [:orders/show-documents-dialog true]))
                               :on-long-press #(if doc-id
-                                                (rf/dispatch [:ec-orders/change-document.qty
+                                                (rf/dispatch [:orders/change-document.qty
                                                               doc-id product missing-qty])
-                                                (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                                (rf/dispatch [:orders/show-documents-dialog true]))
                               :style         {:margin 8}}])]]))))
 
 
 (defn submit-qty-change [value doc-id product]
   (let [value* (if (not= value "") value 0)
         val (js/parseFloat value*)]
-    (rf/dispatch-sync [:ec-orders/change-document.qty
+    (rf/dispatch-sync [:orders/change-document.qty
                        doc-id product val])))
 
 
@@ -116,7 +116,7 @@
   (let [show-dialog? (r/atom false)]
     (fn [{stock :qty :keys [optimal] :as product} qty]
       (let [accent @(rf/subscribe [:theme/get :colors :accent])
-            doc-id @(rf/subscribe [:ec-orders/selected-document.id])
+            doc-id @(rf/subscribe [:orders/selected-document.id])
             missing-qty (- optimal (max 0 stock))]
         [rn/view {:style {:flex 1}}
          [qty-input-dialog doc-id product qty show-dialog?]
@@ -129,16 +129,16 @@
           [rnp/icon-button {:icon          "remove"
                             :color         accent
                             :on-press      #(if doc-id
-                                              (rf/dispatch [:ec-orders/change-document.qty
+                                              (rf/dispatch [:orders/change-document.qty
                                                             doc-id product (max 0 (dec qty))])
-                                              (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                              (rf/dispatch [:orders/show-documents-dialog true]))
                             :on-long-press #(if doc-id
-                                              (rf/dispatch [:ec-orders/change-document.qty doc-id product 0])
-                                              (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                              (rf/dispatch [:orders/change-document.qty doc-id product 0])
+                                              (rf/dispatch [:orders/show-documents-dialog true]))
                             :style         {:margin 8}}]
           [rnp/touchable-ripple {:on-press #(if doc-id
                                               (reset! show-dialog? true)
-                                              (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                              (rf/dispatch [:orders/show-documents-dialog true]))
                                  :style    {:flex        1
                                             :align-items :center}}
            [rnp/text {:style {:font-size 24}}
@@ -146,12 +146,12 @@
           [rnp/icon-button {:icon          "add"
                             :color         accent
                             :on-press      #(if doc-id
-                                              (rf/dispatch [:ec-orders/change-document.qty
+                                              (rf/dispatch [:orders/change-document.qty
                                                             doc-id product (inc qty)])
-                                              (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                              (rf/dispatch [:orders/show-documents-dialog true]))
                             :on-long-press #(if doc-id
-                                              (rf/dispatch [:ec-orders/change-document.qty doc-id product missing-qty])
-                                              (rf/dispatch [:ec-orders/show-documents-dialog true]))
+                                              (rf/dispatch [:orders/change-document.qty doc-id product missing-qty])
+                                              (rf/dispatch [:orders/show-documents-dialog true]))
                             :style         {:margin 8}}]]]))))
 
 
@@ -166,7 +166,7 @@
 
 
 (defn pace-info [{:keys [pace] :as product}]
-  (let [pace-period @(rf/subscribe [:ec-orders.settings/pace-period])]
+  (let [pace-period @(rf/subscribe [:orders.settings/pace-period])]
     [basic-info "tempo" (.toFixed (* pace pace-period) 2)]))
 
 
@@ -236,9 +236,9 @@
 ;(defn rank-info [level {:keys [category-id sales]}]
 ;  (let [cat (e/get-substr category-id 0 (* level 2))
 ;        cat-name (if (seq cat)
-;                   @(rf/subscribe [:ec-orders/category-name cat])
+;                   @(rf/subscribe [:orders/category-name cat])
 ;                   "globalny")
-;        rank @(rf/subscribe [:ec-orders/percentile-rank.pace cat sales])]
+;        rank @(rf/subscribe [:orders/percentile-rank.pace cat sales])]
 ;    [rn/view {:style {:flex            1
 ;                      :flex-direction  :row
 ;                      :justify-content :space-between}}
@@ -258,7 +258,7 @@
 
 
 (defn card-info [& items]
-  (let [card-columns @(rf/subscribe [:ec-orders.settings/card-columns])
+  (let [card-columns @(rf/subscribe [:orders.settings/card-columns])
         n (count items)
         nil-item [rn/view {:style {:flex 1}}]
         items* (into (vec (filter identity items))
@@ -271,7 +271,7 @@
 
 
 (defn card [{:keys [ean] :as product}]
-  (let [qty @(rf/subscribe [:ec-orders/selected-document.qty ean])]
+  (let [qty @(rf/subscribe [:orders/selected-document.qty ean])]
     [rnp/card {:style {:flex         1
                        :align-self   :stretch
                        :margin-top   16
@@ -284,22 +284,22 @@
       [product-subheading product]
       [rn/view {:style {:margin-top 16}}
        [card-info
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :stock]) [stock-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :optimal]) [optimal-qty-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :missing]) [missing-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :volume]) [volume-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :sales]) [sales-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :profit]) [profit-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :buy-price]) [buy-price-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :pace]) [pace-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :cg-price]) [cg-price-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :margin]) [margin-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :price]) [price-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :established-margin]) [established-margin-info product])
-        ;(when @(rf/subscribe [:ec-orders/product-card.show? :rank]) [rank-info 2 product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :last-delivery]) [last-delivery-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :last-sale]) [last-sale-info product])
-        (when @(rf/subscribe [:ec-orders.settings/product-card.show? :promotion]) [promotion-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :stock]) [stock-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :optimal]) [optimal-qty-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :missing]) [missing-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :volume]) [volume-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :sales]) [sales-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :profit]) [profit-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :buy-price]) [buy-price-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :pace]) [pace-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :cg-price]) [cg-price-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :margin]) [margin-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :price]) [price-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :established-margin]) [established-margin-info product])
+        ;(when @(rf/subscribe [:orders/product-card.show? :rank]) [rank-info 2 product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :last-delivery]) [last-delivery-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :last-sale]) [last-sale-info product])
+        (when @(rf/subscribe [:orders.settings/product-card.show? :promotion]) [promotion-info product])
         ]]
       [rn/view {:style {:flex-direction  :row
                         :justify-content :space-between

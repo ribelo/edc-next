@@ -48,9 +48,9 @@
             [edc-next.cg-warehouse.events]
             [edc-next.cg-warehouse.subs]
 
-            [edc-next.ec-orders.db :as ec-orders.db]
-            [edc-next.ec-orders.events]
-            [edc-next.ec-orders.subs]
+            [edc-next.orders.db :as orders.db]
+            [edc-next.orders.events]
+            [edc-next.orders.subs]
             [goog]
 
             ))
@@ -69,6 +69,6 @@
                         server.db/state
                         warehouse.db/state
                         cg-warehouse.db/state
-                        ec-orders.db/state)
+                        orders.db/state)
      :dispatch-n [[:db/load-async-storage!]
                   [:firebase/init]]}))

@@ -23,7 +23,7 @@
     {:db (->> db
               (sp/setval [:warehouse :_products/by-ean] data)
               (sp/setval [:warehouse :_data-loading?] false))
-     :dispatch [:ec-orders/reset-view]}))
+     :dispatch [:orders/reset-view]}))
 
 
 (rf/reg-event-fx

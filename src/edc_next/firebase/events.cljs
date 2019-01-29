@@ -3,13 +3,13 @@
             [oops.core :refer [oget ocall]]
             [com.rpl.specter :as sp]
             [edc-next.firebase.core :as fb]
-            [edc-next.firebase.db :refer [config]]))
+            [edc-next.firebase.db :refer [firebase-config]]))
 
 
 (rf/reg-event-fx
   :firebase/init
   (fn [_ _]
-    (ocall fb/firebase "initializeApp" (clj->js config))
+    (ocall fb/firebase "initializeApp" firebase-config)
     nil))
 
 

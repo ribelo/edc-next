@@ -1,4 +1,4 @@
-(ns edc-next.ec-orders.creator.events
+(ns edc-next.orders.creator.events
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
             [taoensso.encore :as e]
@@ -9,84 +9,127 @@
 
 
 (rf/reg-event-db
-  :ec-orders.creator/show-make-order-dialog
-  (fn [db [_ val]]
-    (if-not (nil? val)
-      (sp/setval [:ec-orders :creator :_show-make-order-dialog?] val db)
-      (sp/transform [:ec-orders :creator :_show-make-order-dialog?] not db))))
+  :orders.creator/set-supplier
+  (fn [db [_ supplier]]
+    (case supplier
+      "ec" (->> db
+                (sp/setval [:orders :creator :_supplier] supplier)
+                (sp/setval [:orders :creator :_only-cheaper-than-ec?] false)
+                (sp/setval [:orders :creator :_only-cheaper-than-cg?] true))
+      "cg" (->> db
+                (sp/setval [:orders :creator :_supplier] supplier)
+                (sp/setval [:orders :creator :_only-cheaper-than-ec?] true)
+                (sp/setval [:orders :creator :_only-cheaper-than-cg?] false)))))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/set-only-below-minimum
+  :orders.creator/show-make-order-dialog
+  (fn [db [_ val]]
+    (if-not (nil? val)
+      (sp/setval [:orders :creator :_show-make-order-dialog?] val db)
+      (sp/transform [:orders :creator :_show-make-order-dialog?] not db))))
+
+
+(rf/reg-event-db
+  :orders.creator/set-only-below-minimum
   [->async-storage]
   (fn [db [_ val]]
     (if-not (nil? val)
-      (sp/setval [:ec-orders :creator :only-below-minimum?] val db)
-      (sp/transform [:ec-orders :creator :only-below-minimum?] not db))))
+      (sp/setval [:orders :creator :only-below-minimum?] val db)
+      (sp/transform [:orders :creator :only-below-minimum?] not db))))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/toggle-category
+  :orders.creator/toggle-category
   [->async-storage]
   (fn [db [_ id]]
-    (sp/transform [:ec-orders :creator :selected-categories id] not db)))
+    (sp/transform [:orders :creator :selected-categories id] not db)))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/set-min-pace
+  :orders.creator/set-min-pace
   [->async-storage]
   (fn [db [_ pace]]
-    (sp/setval [:ec-orders :creator :min-pace] (js/parseFloat pace) db)))
+    (sp/setval [:orders :creator :min-pace] (js/parseFloat pace) db)))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/inc-min-pace
+  :orders.creator/inc-min-pace
   [->async-storage]
   (fn [db _]
-    (sp/transform [:ec-orders :creator :min-pace] #(e/round2 (+ % 0.1)) db)))
+    (sp/transform [:orders :creator :min-pace] #(e/round2 (+ % 0.1)) db)))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/dec-min-pace
+  :orders.creator/dec-min-pace
   [->async-storage]
   (fn [db _]
-    (sp/transform [:ec-orders :creator :min-pace] #(e/round2 (- % 0.1)) db)))
+    (sp/transform [:orders :creator :min-pace] #(e/round2 (- % 0.1)) db)))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/inc-min-margin
+  :orders.creator/inc-min-margin
   [->async-storage]
   (fn [db _]
-    (sp/transform [:ec-orders :creator :min-margin] #(e/round2 (+ % 0.05)) db)))
+    (sp/transform [:orders :creator :min-margin] #(e/round2 (+ % 0.05)) db)))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/dec-min-margin
+  :orders.creator/dec-min-margin
   [->async-storage]
   (fn [db _]
-    (sp/transform [:ec-orders :creator :min-margin] #(e/round2 (- % 0.05)) db)))
+    (sp/transform [:orders :creator :min-margin] #(e/round2 (- % 0.05)) db)))
 
 
 (rf/reg-event-db
-  :ec-orders.creator/set-only-cheaper-than-cg
+  :orders.creator/set-only-cheaper-than-cg
   [->async-storage]
   (fn [db [_ val]]
-    (if-not (nil? val)
-      (sp/setval [:ec-orders :creator :only-cheaper-than-cg?] val db)
-      (sp/transform [:ec-orders :creator :only-cheaper-than-cg?] not db))))
+    (let [cg-state (sp/select-one [:orders :creator :_only-cheaper-than-cg?] db)
+          ec-state (sp/select-one [:orders :creator :_only-cheaper-than-ec?] db)]
+      (if-not (nil? val)
+        (->> db
+             true
+             (sp/setval [:orders :creator :_only-cheaper-than-cg?] val)
+             (= val ec-state)
+             (sp/setval [:orders :creator :_only-cheaper-than-ec?] (not val)))
+        (cond->> db
+                 true
+                 (sp/transform [:orders :creator :_only-cheaper-than-cg?] not)
+                 (and (not cg-state) (not= cg-state ec-state))
+                 (sp/transform [:orders :creator :_only-cheaper-than-ec?] not))))))
+
+
+(rf/reg-event-db
+  :orders.creator/set-only-cheaper-than-ec
+  [->async-storage]
+  (fn [db [_ val]]
+    (let [cg-state (sp/select-one [:orders :creator :_only-cheaper-than-cg?] db)
+          ec-state (sp/select-one [:orders :creator :_only-cheaper-than-ec?] db)]
+      (if-not (nil? val)
+        (cond->> db
+                 true
+                 (sp/setval [:orders :creator :_only-cheaper-than-ec?] val)
+                 (= val ec-state)
+                 (sp/setval [:orders :creator :_only-cheaper-than-cg?] (not val)))
+        (cond->> db
+                 true
+                 (sp/transform [:orders :creator :_only-cheaper-than-ec?] not)
+                 (and (not ec-state) (not= cg-state ec-state))
+                 (sp/transform [:orders :creator :_only-cheaper-than-cg?] not))))))
 
 
 (rf/reg-event-fx
-  :ec-orders.creator/make-market-order
+  :orders.creator/make-market-order
   (fn [{db :db} _]
     (let [market-id (sp/select-one [:server :_connected-id] db)
           collection (str market-id "-orders")
           warehouse (sp/select-one [:warehouse :_products/by-ean] db)
-          min-margin (sp/select-one [:ec-orders :creator :min-margin] db)
-          min-pace (sp/select-one [:ec-orders :creator :min-pace] db)
-          only-below-min (sp/select-one [:ec-orders :creator :only-below-minimum?] db)
-          selected-categories (sp/select-one [:ec-orders :creator :selected-categories] db)
-          doc-id (sp/select-one [:ec-orders :_document-id] db)
+          min-margin (sp/select-one [:orders :creator :min-margin] db)
+          min-pace (sp/select-one [:orders :creator :min-pace] db)
+          only-below-min (sp/select-one [:orders :creator :only-below-minimum?] db)
+          selected-categories (sp/select-one [:orders :creator :selected-categories] db)
+          doc-id (sp/select-one [:orders :_document-id] db)
           products (into {}
                          (comp
                            (filter (if only-below-min
@@ -108,10 +151,10 @@
                          warehouse)]
       {:firestore/update {:path       [collection doc-id]
                           :doc        {:products products}
-                          :on-success [:ec-orders.creator/make-market-order.success]}})))
+                          :on-success [:orders.creator/make-market-order.success]}})))
 
 
 (rf/reg-event-fx
-  :ec-orders.creator/make-market-order.success
+  :orders.creator/make-market-order.success
   (fn [{db :db} _]
-    {:db (sp/setval [:ec-orders :creator :_show-dialog?] false db)}))
+    {:db (sp/setval [:orders :creator :_show-dialog?] false db)}))

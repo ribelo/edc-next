@@ -1,4 +1,4 @@
-(ns edc-next.ec-orders.settings.subs
+(ns edc-next.orders.settings.subs
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
             [taoensso.encore :as e]
@@ -6,30 +6,30 @@
 
 
 (rf/reg-sub
-  :ec-orders.settings/show-settings-dialog?
+  :orders.settings/show-settings-dialog?
   (fn [db _]
-    (sp/select-one [:ec-orders :settings :_show-settings-dialog?] db)))
+    (sp/select-one [:orders :settings :_show-settings-dialog?] db)))
 
 
 (rf/reg-sub
-  :ec-orders.settings/pace-period
+  :orders.settings/pace-period
   (fn [db _]
-    (sp/select-one [:ec-orders :creator :pace-period] db)))
+    (sp/select-one [:orders :settings :pace-period] db)))
 
 
 (rf/reg-sub
-  :ec-orders.settings/card-columns
+  :orders.settings/card-columns
   (fn [db _]
-    (sp/select-one [:ec-orders :settings :card-columns] db)))
+    (sp/select-one [:orders :settings :card-columns] db)))
 
 
 (rf/reg-sub
-  :ec-orders.settings/product-card-info
+  :orders.settings/product-card-info
   (fn [db _]
-    (sp/select-one [:ec-orders :settings :product-card] db)))
+    (sp/select-one [:orders :settings :product-card] db)))
 
 
 (rf/reg-sub
-  :ec-orders.settings/product-card.show?
+  :orders.settings/product-card.show?
   (fn [db [_ k]]
-    (sp/select-one [:ec-orders :settings :product-card k] db)))
+    (sp/select-one [:orders :settings :product-card k] db)))

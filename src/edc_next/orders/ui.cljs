@@ -1,4 +1,4 @@
-(ns edc-next.ec-orders.ui
+(ns edc-next.orders.ui
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
             [taoensso.encore :as e]
@@ -11,28 +11,77 @@
             [edc-next.rnp.core :as rnp]
             [edc-next.expo.core :as expo]
             [edc-next.server.ui :as server.ui]
-            [edc-next.ec-orders.product-card.ui :as product-card.ui]
+            [edc-next.orders.product-card.ui :as product-card.ui]
             [edc-next.camera.core :as camera]
             [edc-next.camera.ui :as camera.ui]
-            [edc-next.ec-orders.creator.ui :as creator.ui]
-            [edc-next.ec-orders.settings.ui :as settings.ui])
+            [edc-next.orders.creator.ui :as creator.ui]
+            [edc-next.orders.settings.ui :as settings.ui]
+            [edc-next.orders.import.ui :as import.ui]
+            [edc-next.orders.utils :as u])
   (:import (goog.date UtcDateTime)))
 
 
 (defn documents-button []
-  (let [color @(rf/subscribe [:theme/get :colors :text])]
-    [rnp/app-bar-action {:icon     "assignment"
-                         :color    color
-                         :on-press #(rf/dispatch ^:flush-dom [:ec-orders/show-documents-dialog true])}]))
+  (let [color @(rf/subscribe [:theme/get :colors :text])
+        doc-id @(rf/subscribe [:orders/selected-document.id])]
+    [rnp/app-bar-action {:icon          (if doc-id "assignment" "assignment-late")
+                         :color         (if doc-id color (rnp/color :amber500))
+                         :on-press      #(rf/dispatch [:orders/show-documents-dialog true])
+                         :on-long-press #(rn/alert
+                                           ""
+                                           "otwiera okno wyboru dokumentu")}]))
+
+
+(defn show-only-ordered-button []
+  (let [only-ordered? @(rf/subscribe [:orders/show-only-ordered?])
+        doc-id @(rf/subscribe [:orders/selected-document.id])]
+    [rnp/app-bar-action {:icon          (if only-ordered? "turned-in" "turned-in-not")
+                         :color         (when only-ordered? (rnp/color :amber500))
+                         :on-press      (fn []
+                                          (if doc-id
+                                            (rf/dispatch [:orders/show-only-ordered])
+                                            (rf/dispatch [:orders/show-documents-dialog true])))
+                         :on-long-press #(rn/alert
+                                           ""
+                                           (if-not only-ordered?
+                                             (str "po włączeniu zostana pokazane "
+                                                  "tylko towary będące na dokumencie")
+                                             (str "po wyłączeniu zostana pokazane "
+                                                  "wszystkie towary")))}]))
+
+
+(defn export-button []
+  (let [doc-id @(rf/subscribe [:orders/selected-document.id])
+        document @(rf/subscribe [:orders/selected-document])
+        supplier @(rf/subscribe [:orders.creator/supplier])]
+    [rnp/app-bar-action {:icon          (expo/material-community-icon "export")
+                         :on-press      (fn []
+                                          (if doc-id
+                                            (case supplier
+                                              "ec" (rf/dispatch [:sync/document->collector document])
+                                              "cg" (rf/dispatch [:sync/document->ftp document]))
+                                            (rf/dispatch [:orders/show-documents-dialog true])))
+                         :on-long-press #(rn/alert
+                                           ""
+                                           (str "eksportuje dokument do " supplier))}]))
+
+
+(defn import-button []
+  [rnp/app-bar-action {:icon          (expo/material-community-icon "import")
+                       :on-press      (fn []
+                                        (rf/dispatch [:orders.import/get-mm-file-list]))
+                       :on-long-press #(rn/alert
+                                         ""
+                                         (str "importuje dokument z cg"))}])
 
 
 (defn search-bar []
-  (let [search-value-tmp (rf/subscribe [:ec-orders/search-value.tmp])
+  (let [search-value-tmp (rf/subscribe [:orders/search-value.tmp])
         back-handler (r/atom nil)]
     (r/create-class
       {:component-did-mount
        (fn [] (reset! back-handler
-                      (rn/on-back-press (fn [] (rf/dispatch [:ec-orders/show-search-bar false]) true))))
+                      (rn/on-back-press (fn [] (rf/dispatch [:orders/show-search-bar false]) true))))
        :component-will-unmount
        (fn [] (rn/remove-back-handler @back-handler))
        :reagent-render
@@ -46,10 +95,10 @@
                            ;:on-blur        #(rf/dispatch [:ui/hide-search-bar])
                            :icon           "arrow-back"
                            :on-icon-press  #(do
-                                              (rf/dispatch [:ec-orders/show-search-bar false])
+                                              (rf/dispatch [:orders/show-search-bar false])
                                               (when (not= "" @search-value-tmp)
-                                                (rf/dispatch [:ec-orders/set-search-value.tmp ""])))
-                           :on-change-text #(do (rf/dispatch-sync [:ec-orders/set-search-value.tmp %])
+                                                (rf/dispatch [:orders/set-search-value.tmp ""])))
+                           :on-change-text #(do (rf/dispatch-sync [:orders/set-search-value.tmp %])
                                                 (r/flush))
                            :style          {:height 56}}]])})))
 
@@ -57,67 +106,54 @@
 (defn app-bar []
   (let [theme @(rf/subscribe [:theme/get])
         server @(rf/subscribe [:server/connected-server])
-        document-name @(rf/subscribe [:ec-orders/selected-document.name])
-        document-time @(rf/subscribe [:ec-orders/selected-document.time])]
+        document-name @(rf/subscribe [:orders/selected-document.name])
+        supplier @(rf/subscribe [:orders.creator/supplier])]
     [rnp/app-bar-header {:theme theme}
      [rnp/app-bar-action {:icon     "menu"
                           :on-press #(rf/dispatch [:rnrf/open-drawer!])}]
      [rnp/app-bar-content {:title    (:name server)
-                           :subtitle (str (or document-name "nie wybrano dokumentu") " "
-                                          (some->> document-time
-                                                   #(UtcDateTime. %)
-                                                   (dt/to-default-time-zone)
-                                                   (dtf/unparse (dtf/formatter "YYYY-dd-MM HH:mm:ss"))))}]
+                           :subtitle (if document-name
+                                       (str "kryptonim " document-name " dostawca " supplier)
+                                       "nie wybrano dokumentu")
+                           }]
      [rnp/app-bar-action {:icon     "search"
                           :on-press (fn []
-                                      (rf/dispatch [:ec-orders/show-search-bar true])
-                                      ;(rf/dispatch [:camera/show-preview false])
+                                      (rf/dispatch [:orders/show-search-bar true])
+                                      (rf/dispatch [:camera/show-preview false])
                                       )}]
      [server.ui/connection-status-button]]))
 
 
 (defn header-bar []
-  (let [show-search-bar? @(rf/subscribe [:ec-orders/show-search-bar?])]
+  (let [show-search-bar? @(rf/subscribe [:orders/show-search-bar?])]
     (if-not show-search-bar?
       [app-bar]
       [search-bar])))
 
 
 (defn footer-bar []
-  (let [only-order @(rf/subscribe [:ec-orders/show-only-ordered?])
-        doc-id @(rf/subscribe [:ec-orders/selected-document.id])
-        document @(rf/subscribe [:ec-orders/selected-document])]
-    [rnp/app-bar
-     [rnp/app-bar-action {:icon     "settings"
-                          :color    (when only-order (rnp/color :pink500))
-                          :on-press #(rf/dispatch [:ec-orders.settings/show-settings-dialog true])}]
-     [rnp/app-bar-action {:icon     (if only-order "turned-in" "turned-in-not")
-                          :color    (when only-order (rnp/color :pink500))
-                          :on-press (fn []
-                                      (if doc-id
-                                        (rf/dispatch [:ec-orders/show-only-ordered])
-                                        (rf/dispatch [:ec-orders/show-documents-dialog true])))}]
-     [documents-button]
-     [creator.ui/create-order-button]
-     [rnp/app-bar-action {:icon     (expo/material-icon* "send")
-                          :on-press (fn []
-                                      (if doc-id
-                                        (rf/dispatch [:sync/document->collector document])
-                                        (rf/dispatch [:ec-orders/show-documents-dialog true])))}]]))
+  [rnp/app-bar
+   [settings.ui/settings-button]
+   [show-only-ordered-button]
+   [documents-button]
+   [creator.ui/create-order-button]
+   [import-button]
+   [export-button]
+   ])
 
 
 
 (defn documents-dialog []
-  (let [tmp-name (r/atom "zamówienie ec")]
+  (let [tmp-name (r/atom (u/random-animal))]
     (fn []
       (let [primary @(rf/subscribe [:theme/get :colors :primary])
-            show? @(rf/subscribe [:ec-orders/show-documents-dialog?])
-            documents @(rf/subscribe [:ec-orders/documents.by-id])
-            selected-id @(rf/subscribe [:ec-orders/selected-document.id])]
+            show? @(rf/subscribe [:orders/show-documents-dialog?])
+            documents @(rf/subscribe [:orders/documents.by-id])
+            selected-id @(rf/subscribe [:orders/selected-document.id])]
         [rnp/portal
          [rnp/dialog {:visible    show?
                       :on-dismiss (fn []
-                                    (rf/dispatch-sync [:ec-orders/show-documents-dialog false])
+                                    (rf/dispatch-sync [:orders/show-documents-dialog false])
                                     (r/flush))}
           [rnp/dialog-title "wybierz dokument"]
           (when (seq documents)
@@ -130,17 +166,17 @@
                                   :description (dtf/unparse (dtf/formatter "YYYY-dd-MM HH:mm:ss")
                                                             (dt/to-default-time-zone (UtcDateTime. (ocall time "toDate"))))
                                   :on-press    #(rf/dispatch [:do
-                                                              [:ec-orders/select-document doc]
-                                                              [:ec-orders/show-documents-dialog false]])
+                                                              [:orders/select-document doc]
+                                                              [:orders/show-documents-dialog false]])
                                   :right       (fn [] (r/as-element
                                                         [rnp/icon-button {:icon     "delete"
-                                                                          :on-press #(rf/dispatch [:ec-orders/remove-document doc])}]))
+                                                                          :on-press #(rf/dispatch [:orders/remove-document doc])}]))
                                   :left        (fn [] (r/as-element
                                                         [rnp/checkbox {:status   (if (= id selected-id)
                                                                                    "checked" "unchecked")
                                                                        :on-press #(rf/dispatch [:do
-                                                                                                [:ec-orders/select-document doc]
-                                                                                                [:ec-orders/show-documents-dialog false]])}]))}]))]])
+                                                                                                [:orders/select-document doc]
+                                                                                                [:orders/show-documents-dialog false]])}]))}]))]])
           [rnp/dialog-content
            [rn/view {:style {:align-items :center}}
             [rnp/text-input {:value          @tmp-name
@@ -151,12 +187,12 @@
                                               :align-items      :center}}]
             [rnp/icon-button {:icon     "add"
                               :color    primary
-                              :on-press #(rf/dispatch [:ec-orders/new-document @tmp-name])}]]]]]))))
+                              :on-press #(rf/dispatch [:orders/new-document @tmp-name])}]]]]]))))
 
 
 (defn products-view []
-  (let [products @(rf/subscribe [:ec-orders/view])
-        data-loading? @(rf/subscribe [:ec-orders/data-loading?])]
+  (let [products @(rf/subscribe [:orders/view])
+        data-loading? @(rf/subscribe [:orders/data-loading?])]
     [rn/view {:style {:flex 1}}
      (if-not data-loading?
        (if (seq products)
@@ -206,7 +242,7 @@
             [camera/barcode-scanner {:style            {:flex       1
                                                         :align-self :stretch}
                                      :bar-code-types   barcode-types
-                                     :onBarCodeScanned #(rf/dispatch [:ec-orders/barcode-detected %])}]]))})))
+                                     :onBarCodeScanned #(rf/dispatch [:orders/barcode-detected %])}]]))})))
 
 
 (defn view []
@@ -218,6 +254,7 @@
       [server.ui/disconnect-dialog]
       [creator.ui/create-order-dialog]
       [settings.ui/settings-dialog]
+      [import.ui/mm-list-dialog]
       (if-not show-camera
         [rn/view {:style {:flex 1}}
          [products-view]

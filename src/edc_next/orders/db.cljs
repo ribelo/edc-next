@@ -1,20 +1,22 @@
-(ns edc-next.ec-orders.db
+(ns edc-next.orders.db
   (:require [cljs.spec.alpha :as s]
-            [edc-next.ec-orders.creator.db :as creator.db]
-            [edc-next.ec-orders.settings.db :as settings.db]))
+            [edc-next.orders.creator.db :as creator.db]
+            [edc-next.orders.settings.db :as settings.db]
+            [edc-next.orders.import.db :as import.db]))
 
 
-(def state (merge-with merge {:ec-orders {:_show-search-bar?       false
-                                          :_search-value           nil
-                                          :_search-value.tmp       nil
-                                          :_search-timeout         nil
-                                          :_show-only-ordered?     false
-                                          :_show-documents-dialog? false
-                                          :_documents/by-id        {}
-                                          :_document-id            nil
-                                          :_view                   []}}
+(def state (merge-with merge {:orders {:_show-search-bar?       false
+                                       :_search-value           nil
+                                       :_search-value.tmp       nil
+                                       :_search-timeout         nil
+                                       :_show-only-ordered?     false
+                                       :_show-documents-dialog? false
+                                       :_documents/by-id        {}
+                                       :_document-id            nil
+                                       :_view                   []}}
                        creator.db/state
-                       settings.db/state))
+                       settings.db/state
+                       import.db/state))
 
 ;(s/def ::min-pace (s/and number? pos?))
 ;(s/def ::min-margin number?)
@@ -26,7 +28,7 @@
 ;(s/def ::selected-categories (s/map-of string? boolean?))
 ;(s/def ::card-columns int?)
 ;(s/def ::product-card (s/map-of keyword? boolean?))
-;(s/def ::ec-orders (s/keys :req [::_document-id]
+;(s/def ::orders (s/keys :req [::_document-id]
 ;                           :req-un [::min-pace
 ;                                    ::min-margin
 ;                                    ::only-below-minimum?
@@ -35,4 +37,4 @@
 ;                                    ::card-columns
 ;                                    ::product-card]))
 ;
-;(s/def :db.spec/orders (s/keys :req-un [::ec-orders]))
+;(s/def :db.spec/orders (s/keys :req-un [::orders]))

@@ -11,7 +11,7 @@
             [edc-next.ui.core :as ui.core]
             [edc-next.start-screen.ui :as start-screen.ui]
             [edc-next.drawer.ui :as drawer.ui]
-            [edc-next.ec-orders.ui :as ec-orders.ui]))
+            [edc-next.orders.ui :as orders.ui]))
 
 
 (def expo (js/require "expo"))
@@ -37,9 +37,9 @@
                           :position          :left
                           :hideNavBar        true
                           :content-component (r/reactify-component drawer.ui/drawer)}
-             [rnrf/scene {:key       "ec-orders"
-                          :component (r/reactify-component ec-orders.ui/view)
-                          :nav-bar   (r/reactify-component ec-orders.ui/header-bar)}]]]]]
+             [rnrf/scene {:key       "orders"
+                          :component (r/reactify-component orders.ui/view)
+                          :nav-bar   (r/reactify-component orders.ui/header-bar)}]]]]]
          )})))
 
 

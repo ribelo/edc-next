@@ -7,6 +7,6 @@
             [edc-next.rnrf.core :as rnrf]
             [edc-next.start-screen.ui :as start-screen.ui]
             [edc-next.drawer.ui :as drawer.ui]
-            [edc-next.ec-orders.ui :as ec-orders.ui]))
+            [edc-next.orders.ui :as orders.ui]))
 
 

@@ -6,15 +6,30 @@
 (def expo (js/require "expo"))
 (def AtExpo (js/require "@expo/vector-icons"))
 (def ion-icon (r/adapt-react-class (oget AtExpo "Ionicons")))
-(def material-icon (r/adapt-react-class (oget AtExpo "MaterialIcons")))
-(defn material-icon* [name]
+(def material-icons (r/adapt-react-class (oget AtExpo "MaterialIcons")))
+(def material-community-icons (r/adapt-react-class (oget AtExpo "MaterialCommunityIcons")))
+
+
+(defn material-icon [name]
   (fn [props]
     (let [size (oget props :size)
           color (oget props :color)]
       (r/as-element
-        [material-icon {:name  name
+        [material-icons {:name name
                         :size  size
                         :color color}]))))
+
+
+(defn material-community-icon [name]
+  (fn [props]
+    (let [size (oget props :size)
+          color (oget props :color)]
+      (r/as-element
+        [material-community-icons {:name  name
+                         :size  size
+                         :color color}]))))
+
+
 
 (def bar-code-scanner (oget expo "BarCodeScanner"))
 

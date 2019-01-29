@@ -1,4 +1,4 @@
-(ns edc-next.ec-orders.creator.ui
+(ns edc-next.orders.creator.ui
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
             [taoensso.encore :as e]
@@ -7,13 +7,14 @@
             [edc-next.rnp.core :as rnp]))
 
 
+
 (defn create-order-button []
-  (let [doc-id @(rf/subscribe [:ec-orders/selected-document.id])]
+  (let [doc-id @(rf/subscribe [:orders/selected-document.id])]
     [rnp/app-bar-action {:icon          "create"
                          :on-press      (fn []
                                           (if doc-id
-                                            (rf/dispatch [:ec-orders.creator/show-make-order-dialog true])
-                                            (rf/dispatch [:ec-orders/show-documents-dialog true])))
+                                            (rf/dispatch [:orders.creator/show-make-order-dialog true])
+                                            (rf/dispatch [:orders/show-documents-dialog true])))
                          :on-long-press #(rn/alert
                                            "generowanie zamówienie"
                                            (str "tworzenie zamówienia na podstawie rotacji, "
@@ -22,7 +23,7 @@
 
 (defn min-margin-input []
   (let [primary @(rf/subscribe [:theme/get :colors :primary])
-        min-margin @(rf/subscribe [:ec-orders.creator/min-margin])]
+        min-margin @(rf/subscribe [:orders.creator/min-margin])]
     [rn/view {:style {:flex-direction  :row
                       :justify-content :space-between
                       :align-items     :center
@@ -30,12 +31,12 @@
      [rnp/icon-button {:icon     "remove"
                        :size     16
                        :color    primary
-                       :on-press #(rf/dispatch [:ec-orders.creator/dec-min-margin])}]
+                       :on-press #(rf/dispatch [:orders.creator/dec-min-margin])}]
      [rnp/text (str (.toFixed (* 100 min-margin) 0) "%")]
      [rnp/icon-button {:icon     "add"
                        :size     16
                        :color    primary
-                       :on-press #(rf/dispatch [:ec-orders.creator/inc-min-margin])}]]))
+                       :on-press #(rf/dispatch [:orders.creator/inc-min-margin])}]]))
 
 
 (defn min-margin-item []
@@ -53,8 +54,8 @@
 
 (defn min-pace-input []
   (let [primary @(rf/subscribe [:theme/get :colors :primary])
-        min-pace @(rf/subscribe [:ec-orders.creator/min-pace])
-        pace-period @(rf/subscribe [:ec-orders.settings/pace-period])]
+        min-pace @(rf/subscribe [:orders.creator/min-pace])
+        pace-period @(rf/subscribe [:orders.settings/pace-period])]
     [rn/view {:style {:flex-direction  :row
                       :justify-content :space-between
                       :align-items     :center
@@ -62,16 +63,16 @@
      [rnp/icon-button {:icon     "remove"
                        :size     16
                        :color    primary
-                       :on-press #(rf/dispatch [:ec-orders.creator/dec-min-pace])}]
+                       :on-press #(rf/dispatch [:orders.creator/dec-min-pace])}]
      [rnp/text (.toFixed (* min-pace pace-period) 2)]
      [rnp/icon-button {:icon     "add"
                        :size     16
                        :color    primary
-                       :on-press #(rf/dispatch [:ec-orders.creator/inc-min-pace])}]]))
+                       :on-press #(rf/dispatch [:orders.creator/inc-min-pace])}]]))
 
 
 (defn min-pace-item []
-  (let [pace-period @(rf/subscribe [:ec-orders.settings/pace-period])
+  (let [pace-period @(rf/subscribe [:orders.settings/pace-period])
         period-name (case pace-period
                       1 "dzienne"
                       7 "tygodniowe"
@@ -92,13 +93,13 @@
 
 (defn category-checkbox [id status]
   [rnp/checkbox {:status   (if status "checked" "unchecked")
-                 :on-press #(rf/dispatch [:ec-orders.creator/toggle-category id])}])
+                 :on-press #(rf/dispatch [:orders.creator/toggle-category id])}])
 
 
 (defn category-item [id category status]
   [rnp/list-item {:title         category
                   :right         (fn [] (r/as-element [category-checkbox id status]))
-                  :on-press      #(rf/dispatch [:ec-orders.creator/toggle-category id])
+                  :on-press      #(rf/dispatch [:orders.creator/toggle-category id])
                   :on-long-press #(rn/alert
                                     "wybór kategorii"
                                     "możesz ograniczyć generowanie do wybranych kategorii")}])
@@ -106,7 +107,7 @@
 
 (defn category-list []
   (let [categories @(rf/subscribe [:warehouse/categories.parents])
-        selected-categories @(rf/subscribe [:ec-orders.creator/selected-categories])]
+        selected-categories @(rf/subscribe [:orders.creator/selected-categories])]
     [rn/view
      [rnp/list-section {:title "wybierz kategorie"}]
      (doall
@@ -116,15 +117,15 @@
 
 
 (defn only-below-minimum-checkbox []
-  (let [only? @(rf/subscribe [:ec-orders.creator/only-below-minimum?])]
+  (let [only? @(rf/subscribe [:orders.creator/only-below-minimum?])]
     [rnp/checkbox {:status   (if only? "checked" "unchecked")
-                   :on-press #(rf/dispatch [:ec-orders.creator/set-only-below-minimum])}]))
+                   :on-press #(rf/dispatch [:orders.creator/set-only-below-minimum])}]))
 
 
 (defn only-below-minimum-item []
   [rnp/list-item {:title         "tylko towary poniżej stanu minimalnego"
                   :right         (fn [] (r/as-element [only-below-minimum-checkbox]))
-                  :on-press      #(rf/dispatch [:ec-orders.creator/set-only-below-minimum])
+                  :on-press      #(rf/dispatch [:orders.creator/set-only-below-minimum])
                   :on-long-press #(rn/alert
                                     (str "tylko towary poniżej stanu minimalnego")
                                     (str "opcja pozwala wygenerować zamówienie tylko dla towarów, "
@@ -132,38 +133,73 @@
 
 
 (defn only-cheaper-than-cg-checkbox []
-  (let [only? @(rf/subscribe [:ec-orders.creator/only-cheaper-than-cg?])]
+  (let [only? @(rf/subscribe [:orders.creator/only-cheaper-than-cg?])]
     [rnp/checkbox {:status   (if only? "checked" "unchecked")
-                   :on-press #(rf/dispatch [:ec-orders.creator/set-only-cheaper-than-cg])}]))
+                   :on-press #(rf/dispatch [:orders.creator/set-only-cheaper-than-cg])}]))
 
 
 (defn only-cheaper-than-cg-item []
   [rnp/list-item {:title         "tylko tańsze niż w cg"
                   :right         (fn [] (r/as-element [only-cheaper-than-cg-checkbox]))
-                  :on-press      #(rf/dispatch [:ec-orders.creator/set-only-cheaper-than-cg])
+                  :on-press      #(rf/dispatch [:orders.creator/set-only-cheaper-than-cg])
                   :on-long-press #(rn/alert
                                     (str "tylko towary tańsze niż w magazynie centralnym")
                                     (str "opcja pozwala wygenerować pominąć towary, "
                                          "których cena jest wyższa, niż w magazynie cg"))}])
 
 
+(defn only-cheaper-than-ec-checkbox []
+  (let [only? @(rf/subscribe [:orders.creator/only-cheaper-than-ec?])]
+    [rnp/checkbox {:status   (if only? "checked" "unchecked")
+                   :on-press #(rf/dispatch [:orders.creator/set-only-cheaper-than-ec])}]))
+
+
+(defn only-cheaper-than-ec-item []
+  [rnp/list-item {:title         "tylko tańsze niż w ec"
+                  :right         (fn [] (r/as-element [only-cheaper-than-ec-checkbox]))
+                  :on-press      #(rf/dispatch [:orders.creator/set-only-cheaper-than-cg])
+                  :on-long-press #(rn/alert
+                                    (str "tylko towary tańsze niż w eurocash dystrybucja")
+                                    (str "opcja pozwala wygenerować pominąć towary, "
+                                         "których cena jest wyższa, niż w magazynie ec"))}])
+
+
+(defn supplier-section []
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])]
+    [rn/view
+     [rnp/list-section {:title "dostawca"}]
+     [rnp/radio-button-group {:value           supplier
+                              :on-value-change #(rf/dispatch [:orders.creator/set-supplier %])}
+      [rnp/list-item {:title         "eurocash"
+                      :right         (fn [] (r/as-element [rnp/radio-button {:value "ec"}]))
+                      :on-press      (fn [])
+                      :on-long-press #(rn/alert nil (str "ustawia dostawcę na eurocash"))}]
+      [rnp/list-item {:title         "teas"
+                      :right         (fn [] (r/as-element [rnp/radio-button {:value "cg"}]))
+                      :on-press      (fn [])
+                      :on-long-press #(rn/alert nil (str "ustawia dostawcę na teas"))}]
+      [only-below-minimum-item]
+      [only-cheaper-than-cg-item]
+      [only-cheaper-than-ec-item]
+      [rnp/divider]]]))
+
+
 (defn create-order-dialog []
-  (let [show? @(rf/subscribe [:ec-orders.creator/show-make-order-dialog?])]
+  (let [show? @(rf/subscribe [:orders.creator/show-make-order-dialog?])]
     [rnp/portal
      [rnp/dialog {:visible    show?
-                  :on-dismiss #(rf/dispatch [:ec-orders.creator/show-make-order-dialog false])}
+                  :on-dismiss #(rf/dispatch [:orders.creator/show-make-order-dialog false])}
       [rnp/dialog-title "tworzenie zamówienia"]
       [rnp/dialog-scroll-area
        [rn/scroll-view {:style {:height "75%"}}
+        [supplier-section]
         [min-margin-item]
         [min-pace-item]
-        [only-below-minimum-item]
-        [only-cheaper-than-cg-item]
         [category-list]]]
       [rnp/dialog-actions
-       [rnp/button {:on-press #(rf/dispatch [:ec-orders.creator/show-make-order-dialog false])}
+       [rnp/button {:on-press #(rf/dispatch [:orders.creator/show-make-order-dialog false])}
         "anuluj"]
-       [rnp/button {:on-press #(rf/dispatch [:ec-orders.creator/make-market-order])}
+       [rnp/button {:on-press #(rf/dispatch [:orders.creator/make-market-order])}
         "wypełnij"]]]]))
 
 

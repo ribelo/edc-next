@@ -1,4 +1,4 @@
-(ns edc-next.ec-orders.settings.ui
+(ns edc-next.orders.settings.ui
   (:require [reagent.core :as r]
             [re-frame.core :as rf]
             [taoensso.encore :as e]
@@ -7,33 +7,38 @@
             [edc-next.rnp.core :as rnp]))
 
 
+(defn settings-button []
+  [rnp/app-bar-action {:icon     "settings"
+                       :on-press #(rf/dispatch [:orders.settings/show-settings-dialog true])}])
+
+
 (defn settings-dialog-item-checkbox [key]
-  (let [show? @(rf/subscribe [:ec-orders.settings/product-card.show? key])]
+  (let [show? @(rf/subscribe [:orders.settings/product-card.show? key])]
     [rnp/checkbox {:status   (if show? "checked" "unchecked")
-                   :on-press #(rf/dispatch [:ec-orders.settings/toggle-product-card-elem key])}]))
+                   :on-press #(rf/dispatch [:orders.settings/toggle-product-card-elem key])}]))
 
 
 (defn settings-dialog-item [key name]
   [rnp/list-item {:title         name
                   :right         (fn [] (r/as-element [settings-dialog-item-checkbox key]))
-                  :on-press      #(rf/dispatch [:ec-orders.settings/toggle-product-card-elem key])
+                  :on-press      #(rf/dispatch [:orders.settings/toggle-product-card-elem key])
                   :on-long-press #(rn/alert nil
                                             (str "pokazuje na karcie towaru " name))}])
 
 
 (defn settings-dialog []
-  (let [show? @(rf/subscribe [:ec-orders.settings/show-settings-dialog?])
-        pace-period @(rf/subscribe [:ec-orders.settings/pace-period])
-        card-columns @(rf/subscribe [:ec-orders.settings/card-columns])]
+  (let [show? @(rf/subscribe [:orders.settings/show-settings-dialog?])
+        pace-period @(rf/subscribe [:orders.settings/pace-period])
+        card-columns @(rf/subscribe [:orders.settings/card-columns])]
     [rnp/portal
      [rnp/dialog {:visible    show?
-                  :on-dismiss #(rf/dispatch [:ec-orders.settings/show-settings-dialog false])}
+                  :on-dismiss #(rf/dispatch [:orders.settings/show-settings-dialog false])}
       [rnp/dialog-title "ustawienia"]
       [rnp/dialog-scroll-area {:height "75%"}
        [rn/scroll-view
         [rnp/list-section {:title "długość okresu"}]
         [rnp/radio-button-group {:value           pace-period
-                                 :on-value-change #(rf/dispatch [:ec-orders.settings/set-pace-period %])}
+                                 :on-value-change #(rf/dispatch [:orders.settings/set-pace-period %])}
          [rnp/list-item {:title         "dzień"
                          :right         (fn [] (r/as-element [rnp/radio-button {:value 1}]))
                          :on-press      (fn [])
@@ -66,7 +71,7 @@
                                                         "na jeden rok"))}]]
         [rnp/list-section {:title "ilość kolumn w karcie towaru"}]
         [rnp/radio-button-group {:value           card-columns
-                                 :on-value-change #(rf/dispatch [:ec-orders.settings/set-card-columns %])}
+                                 :on-value-change #(rf/dispatch [:orders.settings/set-card-columns %])}
          [rnp/list-item {:title         "jedna"
                          :right         (fn [] (r/as-element
                                                  [rnp/radio-button {:value 1}]))
@@ -106,5 +111,5 @@
         [settings-dialog-item :last-delivery "data ostaniej dostawy"]
         [settings-dialog-item :promotion "nazwa promocji"]]]
       [rnp/dialog-actions
-       [rnp/button {:on-press #(rf/dispatch [:ec-orders.settings/show-settings-dialog false])}
+       [rnp/button {:on-press #(rf/dispatch [:orders.settings/show-settings-dialog false])}
         "ok"]]]]))

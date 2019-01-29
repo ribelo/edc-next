@@ -41,8 +41,8 @@
                                       :dispatch-n [[:warehouse/get-products]
                                                    [:cg-warehouse/get-products]
                                                    [:server/set-conecting false]
-                                                   [:ec-orders/reset-view]
-                                                   [:ec-orders/subscribe-documents id]
+                                                   [:orders/reset-view]
+                                                   [:orders/subscribe-documents id]
                                                    ]
                                       :halt?      true}
                                      ;{:when       :seen? :events :sente/make-channel-socket-client!.failure
@@ -70,8 +70,14 @@
                         (sp/setval [:server :_connected-id] nil))
        :dispatch-n [[:sente/disconnect!]
                     [:rnrf/navigate! :start-screen]
-                    [:ec-orders/unsubscribe-documents market-id]
+                    [:orders/unsubscribe-documents market-id]
                     [:server/show-disconnect-dialog false]]})))
+
+
+;(rf/reg-event-fx
+;  :server/version
+;  (fn [{db :db} _]
+;    {:ws/send {:event :server/version}}))
 
 
 (rf/reg-event-fx

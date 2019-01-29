@@ -1,7 +1,7 @@
-(ns edc-next.ec-orders.settings.db)
+(ns edc-next.orders.settings.db)
 
 
-(def state {:ec-orders
+(def state {:orders
             {:settings
              {:_show-settings-dialog? false
               :pace-period            1

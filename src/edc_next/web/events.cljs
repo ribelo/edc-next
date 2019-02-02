@@ -10,10 +10,16 @@
 (rf/reg-event-fx
   :frisco/search!
   (fn [_ [_ q]]
-    {:dispatch [:expo/open-browser (str "https://www.frisco.pl/q," q "/stn,searchResults")]}))
+    {:expo/open-browser (str "https://www.frisco.pl/q," q "/stn,searchResults")}))
+
+
+(rf/reg-event-fx
+  :dodomku/search!
+  (fn [_ [_ q]]
+    {:expo/open-browser (str "https://dodomku.pl/szukaj/" q "/0.html")}))
 
 
 (rf/reg-event-fx
   :google/search!
   (fn [_ [_ q]]
-    {:dispatch [:expo/open-browser (str "https://www.google.pl/search?q=" q)]}))
+    {:expo/open-browser (str "https://www.google.pl/search?q=" q)}))

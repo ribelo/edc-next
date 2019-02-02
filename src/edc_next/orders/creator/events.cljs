@@ -132,8 +132,10 @@
 
 (comment
   (let [db @re-frame.db/app-db]
-    (first (sp/select-one [:cg-warehouse :_products/by-ean] db))
-    ;(first (sp/select-one [:warehouse :_products/by-ean] db))
+    ;(first (sp/select-one [:cg-warehouse :_products/by-ean] db))
+    (rand-nth (vec (sp/select-one [:warehouse :_products/by-ean] db)))
+    ;(e/qb 200000 (re-find #"^F" "F01450_123113"))
+    ;(.startsWith "F01450_123113" "F")
     ))
 
 
@@ -144,6 +146,7 @@
           collection (str market-id "-orders")
           warehouse (sp/select-one [:warehouse :_products/by-ean] db)
           cg-warehouse (sp/select-one [:cg-warehouse :_products/by-ean] db)
+          supplier (sp/select-one [:orders :creator :_supplier] db)
           min-margin (sp/select-one [:orders :creator :min-margin] db)
           min-pace (sp/select-one [:orders :creator :min-pace] db)
           only-below-min (sp/select-one [:orders :creator :only-below-minimum?] db)
@@ -152,9 +155,12 @@
           only-cheaper-than-cg? (sp/select-one [:orders :creator :_only-cheaper-than-cg?] db)
           only-in-cg-stock? (sp/select-one [:orders :creator :_only-in-cg-stock?] db)
           doc-id (sp/select-one [:orders :_document-id] db)
-          _ (println :orders.creator/make-market-order 1)
           products (into {}
                          (comp
+                           (filter (if (= "ec" supplier)
+                                     (fn [[_ {:keys [id]}]]
+                                       (not (.startsWith "F" id)))
+                                     identity))
                            (filter (if only-below-min
                                      (fn [[_ {:keys [stock min-supply pace]}]]
                                        (< stock (* min-supply pace)))

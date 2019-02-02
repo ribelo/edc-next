@@ -4,13 +4,13 @@
     "description": "No description",
     "slug": "edc-next",
     "sdkVersion": "30.0.0",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "primaryColor": "#cccccc",
     "privacy": "unlisted",
-    "icon": "./assets/icons/app.png",
+    "icon": "./assets/icons/edc_icon.png",
     "splash": {
-      "image": "./assets/icons/loading.png",
+      "image": "./assets/icons/edc_loading.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

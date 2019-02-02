@@ -196,7 +196,9 @@
                                               :align-items      :center}}]
             [rnp/icon-button {:icon     "add"
                               :color    primary
-                              :on-press #(rf/dispatch [:orders/new-document @tmp-name])}]]]]]))))
+                              :on-press (fn []
+                                          (rf/dispatch [:orders/new-document @tmp-name])
+                                          (reset! tmp-name (u/random-animal)))}]]]]]))))
 
 
 (defn products-view []

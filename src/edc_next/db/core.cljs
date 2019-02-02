@@ -49,4 +49,4 @@
 
 
 (def default-db
-  {:greeting "Hello Clojurescript in Expo!!"})
+  {})

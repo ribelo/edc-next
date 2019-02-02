@@ -11,7 +11,11 @@
             [edc-next.utils.fx]
             [edc-next.utils.events]
 
+            [edc-next.rn.fx]
             [edc-next.rn.events]
+
+            [edc-next.expo.fx]
+            [edc-next.expo.events]
 
             [edc-next.rnrf.events]
             [edc-next.rnrf.subs]
@@ -51,6 +55,8 @@
             [edc-next.orders.db :as orders.db]
             [edc-next.orders.events]
             [edc-next.orders.subs]
+
+            [edc-next.web.events]
             [goog]
 
             ))

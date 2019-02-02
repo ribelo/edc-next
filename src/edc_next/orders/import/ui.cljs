@@ -20,8 +20,10 @@
            ^{:key file}
            [rnp/list-item {:title    file
                            :on-press (fn []
-                                       (rf/dispatch [:sync/ftp->collector file])
-                                       (rf/dispatch [:snackbar/show "odebrano mm z ftp" :ok]))}]))]
+                                       (rf/dispatch [:do
+                                                     [:sync/ftp->collector file]
+                                                     [:rn/vibrate 100]
+                                                     [:snackbar/show "odebrano mm z ftp" :ok]]))}]))]
       [rnp/dialog-actions
        [rnp/button {:on-press #(rf/dispatch [:orders.import/show-import-dialog false])}
         "anuluj"]]]]))

@@ -1,0 +1,19 @@
+(ns edc-next.web.events
+  (:require [reagent.core :as r]
+            [re-frame.core :as rf]
+            [taoensso.encore :as e]
+            [com.rpl.specter :as sp]
+            [edc-next.rn.core :as rn]
+            [edc-next.rnp.core :as rnp]))
+
+
+(rf/reg-event-fx
+  :frisco/search!
+  (fn [_ [_ q]]
+    {:dispatch [:rn/open-url! (str "https://www.frisco.pl/q," q "/stn,searchResults")]}))
+
+
+(rf/reg-event-fx
+  :google/search!
+  (fn [_ [_ q]]
+    {:dispatch [:rn/open-url! (str "https://www.google.pl/search?q=" q)]}))

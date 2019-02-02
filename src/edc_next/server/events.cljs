@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf]
             [taoensso.encore :as e]
             [com.rpl.specter :as sp]
+            [oops.core :refer [ocall]]
             [edc-next.db.core :refer [->async-storage]]
             [edc-next.server.db :refer [state]]))
 
@@ -43,6 +44,7 @@
                                                    [:server/set-conecting false]
                                                    [:orders/reset-view]
                                                    [:orders/subscribe-documents id]
+                                                   [:rn/vibrate 100]
                                                    ]
                                       :halt?      true}
                                      ;{:when       :seen? :events :sente/make-channel-socket-client!.failure
@@ -71,9 +73,14 @@
        :dispatch-n [[:sente/disconnect!]
                     [:rnrf/navigate! :start-screen]
                     [:orders/unsubscribe-documents market-id]
-                    [:server/show-disconnect-dialog false]]})))
+                    [:server/show-disconnect-dialog false]
+                    [:rn/vibrate [0 100 100 100]]]})))
 
-
+(comment
+  (rf/dispatch [:rn/vibrate [100 100 100 100 100]])
+  (edc-next.rn.core/vibrate #js [0 50 50 50])
+  (ocall edc-next.rn.core/vibration "cancel")
+  )
 ;(rf/reg-event-fx
 ;  :server/version
 ;  (fn [{db :db} _]

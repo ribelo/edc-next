@@ -61,7 +61,9 @@
 (def date-picker (oget+ rn :DatePickerAndroid))
 
 (def vibration (oget+ rn :Vibration))
-(defn vibrate [pattern] (ocall+ vibration :vibrate pattern))
+(defn vibrate
+  ([pattern] (ocall+ vibration :vibrate pattern))
+  ([pattern repeat] (ocall+ vibration :vibrate pattern repeat)))
 
 
 
@@ -113,3 +115,5 @@
 (def keyboard (oget+ rn :Keyboard))
 
 (def dimensions (oget+ rn :Dimensions))
+
+(def linking (oget+ rn :Linking))

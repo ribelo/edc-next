@@ -9,13 +9,18 @@
             [edc-next.orders.settings.subs]
             [edc-next.orders.import.subs]))
 
-
+(comment
+  (rf/clear-subscription-cache!)
+  @(rf/subscribe [:orders.creator/calculating?])
+  @(rf/subscribe [:orders.creator/only-in-cg-stock?])
+  )
 (rf/reg-sub
   :orders/data-loading?
   :<- [:warehouse/data-loading?]
   :<- [:orders/search-timeout.searching?]
-  (fn [[warehouse-loading? searching?]]
-    (or warehouse-loading? searching?)))
+  :<- [:orders.creator/calculating?]
+  (fn [[warehouse-loading? searching? calculating?]]
+    (or warehouse-loading? searching? calculating?)))
 
 
 (rf/reg-sub

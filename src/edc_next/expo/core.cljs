@@ -1,6 +1,6 @@
 (ns edc-next.expo.core
   (:require [reagent.core :as r]
-            [oops.core :refer [oget oget+]]))
+            [oops.core :refer [oget oget+ ocall]]))
 
 
 (def expo (js/require "expo"))
@@ -40,6 +40,13 @@
 
 (def permissions (oget expo "Permissions"))
 
-(oget expo "BarCodeScanner" "Constants" "BarCodeType")
+(def web-browser (oget expo "WebBrowser"))
+;Notifications.presentLocalNotificationAsync
+
+(def notifications (oget expo "Notifications"))
+
+(def speech (oget expo "Speech"))
+
+
 
 

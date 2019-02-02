@@ -133,35 +133,62 @@
 
 
 (defn only-cheaper-than-cg-checkbox []
-  (let [only? @(rf/subscribe [:orders.creator/only-cheaper-than-cg?])]
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])
+        only? @(rf/subscribe [:orders.creator/only-cheaper-than-cg?])]
     [rnp/checkbox {:status   (if only? "checked" "unchecked")
+                   :disabled (= "cg" supplier)
                    :on-press #(rf/dispatch [:orders.creator/set-only-cheaper-than-cg])}]))
 
 
 (defn only-cheaper-than-cg-item []
-  [rnp/list-item {:title         "tylko tańsze niż w cg"
-                  :right         (fn [] (r/as-element [only-cheaper-than-cg-checkbox]))
-                  :on-press      #(rf/dispatch [:orders.creator/set-only-cheaper-than-cg])
-                  :on-long-press #(rn/alert
-                                    (str "tylko towary tańsze niż w magazynie centralnym")
-                                    (str "opcja pozwala wygenerować pominąć towary, "
-                                         "których cena jest wyższa, niż w magazynie cg"))}])
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])]
+    [rnp/list-item {:title         "tylko tańsze niż w cg"
+                    :right         (fn [] (r/as-element [only-cheaper-than-cg-checkbox]))
+                    :on-press      #(when (not= "cg" supplier)
+                                      (rf/dispatch [:orders.creator/set-only-cheaper-than-cg]))
+                    :on-long-press #(rn/alert
+                                      (str "tylko towary tańsze niż w magazynie centralnym")
+                                      (str "opcja pozwala wygenerować pominąć towary, "
+                                           "których cena jest wyższa, niż w magazynie cg"))}]))
 
 
 (defn only-cheaper-than-ec-checkbox []
-  (let [only? @(rf/subscribe [:orders.creator/only-cheaper-than-ec?])]
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])
+        only? @(rf/subscribe [:orders.creator/only-cheaper-than-ec?])]
     [rnp/checkbox {:status   (if only? "checked" "unchecked")
+                   :disabled (= "ec" supplier)
                    :on-press #(rf/dispatch [:orders.creator/set-only-cheaper-than-ec])}]))
 
 
 (defn only-cheaper-than-ec-item []
-  [rnp/list-item {:title         "tylko tańsze niż w ec"
-                  :right         (fn [] (r/as-element [only-cheaper-than-ec-checkbox]))
-                  :on-press      #(rf/dispatch [:orders.creator/set-only-cheaper-than-cg])
-                  :on-long-press #(rn/alert
-                                    (str "tylko towary tańsze niż w eurocash dystrybucja")
-                                    (str "opcja pozwala wygenerować pominąć towary, "
-                                         "których cena jest wyższa, niż w magazynie ec"))}])
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])]
+    [rnp/list-item {:title         "tylko tańsze niż w ec"
+                    :right         (fn [] (r/as-element [only-cheaper-than-ec-checkbox]))
+                    :on-press      #(when (not= "ec" supplier)
+                                      (rf/dispatch [:orders.creator/set-only-cheaper-than-ec]))
+                    :on-long-press #(rn/alert
+                                      (str "tylko towary tańsze niż w eurocash dystrybucja")
+                                      (str "opcja pozwala pominąć towary, "
+                                           "których cena jest wyższa, niż w magazynie ec"))}]))
+
+
+(defn only-in-cg-stock-checkbox []
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])
+        only? @(rf/subscribe [:orders.creator/only-in-cg-stock?])]
+    [rnp/checkbox {:status   (if only? "checked" "unchecked")
+                   :disabled (= "ec" supplier)
+                   :on-press #(rf/dispatch [:orders.creator/set-only-in-cg-stock])}]))
+
+
+(defn only-in-cg-stock-item []
+  (let [supplier @(rf/subscribe [:orders.creator/supplier])]
+    [rnp/list-item {:title         "tylko będące na stanie w cg"
+                    :right         (fn [] (r/as-element [only-in-cg-stock-checkbox]))
+                    :on-press      #(when (= "cg" supplier)
+                                      (rf/dispatch [:orders.creator/set-only-in-cg-stock]))
+                    :on-long-press #(rn/alert
+                                      (str "opcja pozwala pominąć towary, "
+                                           "których nie ma na stanie w magazynie cg"))}]))
 
 
 (defn supplier-section []
@@ -172,15 +199,16 @@
                               :on-value-change #(rf/dispatch [:orders.creator/set-supplier %])}
       [rnp/list-item {:title         "eurocash"
                       :right         (fn [] (r/as-element [rnp/radio-button {:value "ec"}]))
-                      :on-press      (fn [])
+                      :on-press      #(rf/dispatch [:orders.creator/set-supplier "ec"])
                       :on-long-press #(rn/alert nil (str "ustawia dostawcę na eurocash"))}]
       [rnp/list-item {:title         "teas"
                       :right         (fn [] (r/as-element [rnp/radio-button {:value "cg"}]))
-                      :on-press      (fn [])
+                      :on-press      #(rf/dispatch [:orders.creator/set-supplier "cg"])
                       :on-long-press #(rn/alert nil (str "ustawia dostawcę na teas"))}]
       [only-below-minimum-item]
       [only-cheaper-than-cg-item]
       [only-cheaper-than-ec-item]
+      [only-in-cg-stock-item]
       [rnp/divider]]]))
 
 

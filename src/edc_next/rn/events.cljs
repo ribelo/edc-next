@@ -8,26 +8,20 @@
 ;        (fn [] (println "sex")))
 
 
-(rf/reg-event-fx
-  :rn/back-handler!
-  (fn [{db :db} [_ val]]
-    (println "sex")))
+;(rf/reg-event-fx
+;  :rn/back-handler!
+;  (fn [{db :db} [_ val]]
+;    (println "sex")))
 
 
 
 (rf/reg-event-fx
-  :rn/vibrate!
+  :rn/vibrate
   (fn [{db :db} [_ pattern]]
-    (rn/vibrate pattern)))
-
-
-(rf/reg-event-fx
-  :rn/vibrate!
-  (fn [{db :db} [_ pattern]]
-    (rn/vibrate pattern)))
+    {:rn/vibrate pattern}))
 
 
 (rf/reg-event-fx
   :rn/keyboard-dismiss
   (fn [_ _]
-    (ocall rn/keyboard "dismiss")))
+    {:rn/keyboard-dismiss true}))

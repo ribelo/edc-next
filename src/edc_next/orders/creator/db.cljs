@@ -1,12 +1,14 @@
 (ns edc-next.orders.creator.db)
 
 
-(def state {:orders {:creator {:_supplier                "ec"
+(def state {:orders {:creator {:_calculating?            false
+                               :_supplier                "ec"
                                :min-pace                 0.1
                                :min-margin               0.05
                                :only-below-minimum?      true
                                :_only-cheaper-than-cg?   true
                                :_only-cheaper-than-ec?   false
+                               :_only-in-cg-stock?       false
                                :_show-make-order-dialog? false
                                :selected-categories      {"01" true
                                                           "02" true

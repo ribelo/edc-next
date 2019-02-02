@@ -10,14 +10,16 @@
 
 (defn product-title [{:keys [name]}]
   [rnp/title {:number-of-lines    1
-              :allow-font-scaling false} name])
+              :allow-font-scaling false}
+   name])
 
 
 (defn product-subheading [{:keys [ean place]}]
   [rn/view {:style {:flex-direction  :row
                     :justify-content :space-between}}
    [rnp/subheading {:number-of-lines    1
-                    :allow-font-scaling false}
+                    :allow-font-scaling false
+                    :on-long-press      #(rf/dispatch [:frisco/search! ean])}
     ean]
    [rnp/subheading {:number-of-lines    1
                     :allow-font-scaling false}

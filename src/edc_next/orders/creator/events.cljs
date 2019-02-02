@@ -12,14 +12,16 @@
   :orders.creator/set-supplier
   (fn [db [_ supplier]]
     (case supplier
-      "ec" (->> db
-                (sp/setval [:orders :creator :_supplier] supplier)
-                (sp/setval [:orders :creator :_only-cheaper-than-ec?] false)
-                (sp/setval [:orders :creator :_only-cheaper-than-cg?] true))
-      "cg" (->> db
-                (sp/setval [:orders :creator :_supplier] supplier)
-                (sp/setval [:orders :creator :_only-cheaper-than-ec?] true)
-                (sp/setval [:orders :creator :_only-cheaper-than-cg?] false)))))
+      "ec" (-> db
+               (assoc-in [:orders :creator :_supplier] supplier)
+               (assoc-in [:orders :creator :_only-cheaper-than-ec?] false)
+               (assoc-in [:orders :creator :_only-cheaper-than-cg?] true)
+               (assoc-in [:orders :creator :_only-in-cg-stock?] false))
+      "cg" (-> db
+               (assoc-in [:orders :creator :_supplier] supplier)
+               (assoc-in [:orders :creator :_only-cheaper-than-ec?] true)
+               (assoc-in [:orders :creator :_only-cheaper-than-cg?] false)
+               (assoc-in [:orders :creator :_only-in-cg-stock?] true)))))
 
 
 (rf/reg-event-db
@@ -88,11 +90,11 @@
     (let [cg-state (sp/select-one [:orders :creator :_only-cheaper-than-cg?] db)
           ec-state (sp/select-one [:orders :creator :_only-cheaper-than-ec?] db)]
       (if-not (nil? val)
-        (->> db
-             true
-             (sp/setval [:orders :creator :_only-cheaper-than-cg?] val)
-             (= val ec-state)
-             (sp/setval [:orders :creator :_only-cheaper-than-ec?] (not val)))
+        (cond->> db
+                 true
+                 (sp/setval [:orders :creator :_only-cheaper-than-cg?] val)
+                 (= val ec-state)
+                 (sp/setval [:orders :creator :_only-cheaper-than-ec?] (not val)))
         (cond->> db
                  true
                  (sp/transform [:orders :creator :_only-cheaper-than-cg?] not)
@@ -119,22 +121,58 @@
                  (sp/transform [:orders :creator :_only-cheaper-than-cg?] not))))))
 
 
+(rf/reg-event-db
+  :orders.creator/set-only-in-cg-stock
+  [->async-storage]
+  (fn [db [_ val]]
+    (println :orders.creator/set-only-in-cg-stock val)
+    (if-not (nil? val)
+      (sp/setval [:orders :creator :_only-in-cg-stock?] val db)
+      (sp/transform [:orders :creator :_only-in-cg-stock?] not db))))
+
+(comment
+  (let [db @re-frame.db/app-db]
+    (first (sp/select-one [:cg-warehouse :_products/by-ean] db))
+    ;(first (sp/select-one [:warehouse :_products/by-ean] db))
+    ))
+
+
 (rf/reg-event-fx
   :orders.creator/make-market-order
   (fn [{db :db} _]
     (let [market-id (sp/select-one [:server :_connected-id] db)
           collection (str market-id "-orders")
           warehouse (sp/select-one [:warehouse :_products/by-ean] db)
+          cg-warehouse (sp/select-one [:cg-warehouse :_products/by-ean] db)
           min-margin (sp/select-one [:orders :creator :min-margin] db)
           min-pace (sp/select-one [:orders :creator :min-pace] db)
           only-below-min (sp/select-one [:orders :creator :only-below-minimum?] db)
           selected-categories (sp/select-one [:orders :creator :selected-categories] db)
+          only-cheaper-than-ec? (sp/select-one [:orders :creator :_only-cheaper-than-ec?] db)
+          only-cheaper-than-cg? (sp/select-one [:orders :creator :_only-cheaper-than-cg?] db)
+          only-in-cg-stock? (sp/select-one [:orders :creator :_only-in-cg-stock?] db)
           doc-id (sp/select-one [:orders :_document-id] db)
+          _ (println :orders.creator/make-market-order 1)
           products (into {}
                          (comp
                            (filter (if only-below-min
                                      (fn [[_ {:keys [stock min-supply pace]}]]
                                        (< stock (* min-supply pace)))
+                                     identity))
+                           (filter (if only-cheaper-than-cg?
+                                     (fn [[ean {:keys [buy-price]}]]
+                                       (let [cg-price (sp/select-one [ean :buy-price] cg-warehouse)]
+                                         (or (nil? cg-price) (< ^number buy-price ^number cg-price))))
+                                     identity))
+                           (filter (if only-cheaper-than-ec?
+                                     (fn [[ean {:keys [buy-price]}]]
+                                       (let [cg-price (sp/select-one [ean :buy-price] cg-warehouse)]
+                                         (and cg-price (>= ^number buy-price ^number cg-price))))
+                                     identity))
+                           (filter (if only-in-cg-stock?
+                                     (fn [[ean _]]
+                                       (let [stock (sp/select-one [ean :stock] cg-warehouse)]
+                                         (and stock (pos? ^number stock))))
                                      identity))
                            (filter (fn [[_ {:keys [stock optimal]}]]
                                      (> (e/round0 (- optimal (max 0 stock))) 0)))
@@ -149,7 +187,11 @@
                                         :qty  (e/round0 (- optimal (max 0 qty)))}}))
                            )
                          warehouse)]
-      {:firestore/update {:path       [collection doc-id]
+      (println (count products))
+      {:db               (->> db
+                              (sp/setval [:orders :creator :_calculating?] true)
+                              (sp/setval [:orders :creator :_show-make-order-dialog?] false))
+       :firestore/update {:path       [collection doc-id]
                           :doc        {:products products}
                           :on-success [:orders.creator/make-market-order.success]}})))
 
@@ -157,4 +199,5 @@
 (rf/reg-event-fx
   :orders.creator/make-market-order.success
   (fn [{db :db} _]
-    {:db (sp/setval [:orders :creator :_show-dialog?] false db)}))
+    {:db (sp/setval [:orders :creator :_calculating?] false db)
+     :dispatch [:orders/show-only-ordered true]}))

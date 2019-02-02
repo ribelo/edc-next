@@ -44,6 +44,12 @@
 
 
 (rf/reg-sub
+  :orders.creator/only-in-cg-stock?
+  (fn [db _]
+    (sp/select-one [:orders :creator :_only-in-cg-stock?] db)))
+
+
+(rf/reg-sub
   :orders.creator/show-make-order-dialog?
   (fn [db _]
     (sp/select-one [:orders :creator :_show-make-order-dialog?] db)))
@@ -59,3 +65,9 @@
   :orders.creator/category-selected?
   (fn [db [_ id]]
     (sp/select-one [:orders :creator :selected-categories id] db)))
+
+
+(rf/reg-sub
+  :orders.creator/calculating?
+  (fn [db _]
+    (sp/select-one [:orders :creator :_calculating?] db)))

@@ -22,10 +22,10 @@
 
 
 (defn documents-button []
-  (let [color @(rf/subscribe [:theme/get :colors :text])
+  (let [accent @(rf/subscribe [:theme/get :colors :accent])
         doc-id @(rf/subscribe [:orders/selected-document.id])]
     [rnp/app-bar-action {:icon          (if doc-id "assignment" "assignment-late")
-                         :color         (if doc-id color (rnp/color :amber500))
+                         :color         (if doc-id (rnp/color :black) accent)
                          :on-press      #(rf/dispatch [:orders/show-documents-dialog true])
                          :on-long-press #(rn/alert
                                            ""
@@ -34,9 +34,10 @@
 
 (defn show-only-ordered-button []
   (let [only-ordered? @(rf/subscribe [:orders/show-only-ordered?])
+        accent @(rf/subscribe [:theme/get :colors :accent])
         doc-id @(rf/subscribe [:orders/selected-document.id])]
     [rnp/app-bar-action {:icon          (if only-ordered? "turned-in" "turned-in-not")
-                         :color         (when only-ordered? (rnp/color :amber500))
+                         :color         (if only-ordered? accent (rnp/color :black))
                          :on-press      (fn []
                                           (if doc-id
                                             (rf/dispatch [:orders/show-only-ordered])
@@ -55,11 +56,16 @@
         document @(rf/subscribe [:orders/selected-document])
         supplier @(rf/subscribe [:orders.creator/supplier])]
     [rnp/app-bar-action {:icon          (expo/material-community-icon "export")
+                         :color         (rnp/color :black)
                          :on-press      (fn []
                                           (if doc-id
                                             (case supplier
-                                              "ec" (rf/dispatch [:sync/document->collector document])
-                                              "cg" (rf/dispatch [:sync/document->ftp document]))
+                                              "ec" (rf/dispatch [:do
+                                                                 [:sync/document->collector document]
+                                                                 [:rn/vibrate 100]])
+                                              "cg" (rf/dispatch [:do
+                                                                 [:sync/document->ftp document]
+                                                                 [:rn/vibrate 100]]))
                                             (rf/dispatch [:orders/show-documents-dialog true])))
                          :on-long-press #(rn/alert
                                            ""
@@ -68,6 +74,7 @@
 
 (defn import-button []
   [rnp/app-bar-action {:icon          (expo/material-community-icon "import")
+                       :color         (rnp/color :black)
                        :on-press      (fn []
                                         (rf/dispatch [:orders.import/get-mm-file-list]))
                        :on-long-press #(rn/alert
@@ -110,6 +117,7 @@
         supplier @(rf/subscribe [:orders.creator/supplier])]
     [rnp/app-bar-header {:theme theme}
      [rnp/app-bar-action {:icon     "menu"
+                          :color    (rnp/color :black)
                           :on-press #(rf/dispatch [:rnrf/open-drawer!])}]
      [rnp/app-bar-content {:title    (:name server)
                            :subtitle (if document-name
@@ -117,6 +125,7 @@
                                        "nie wybrano dokumentu")
                            }]
      [rnp/app-bar-action {:icon     "search"
+                          :color    (rnp/color :black)
                           :on-press (fn []
                                       (rf/dispatch [:orders/show-search-bar true])
                                       (rf/dispatch [:camera/show-preview false])

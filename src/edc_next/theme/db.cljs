@@ -9,5 +9,5 @@
                                     :accent-dark   "#c75b39"
                                     :accent-light  "#ffbb93"}}))
 
-
+app-theme
 (def state {:theme (js->clj app-theme :keywordize-keys true)})

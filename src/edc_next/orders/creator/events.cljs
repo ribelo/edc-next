@@ -199,5 +199,5 @@
 (rf/reg-event-fx
   :orders.creator/make-market-order.success
   (fn [{db :db} _]
-    {:db (sp/setval [:orders :creator :_calculating?] false db)
+    {:db       (sp/setval [:orders :creator :_calculating?] false db)
      :dispatch [:orders/show-only-ordered true]}))

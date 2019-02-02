@@ -10,10 +10,10 @@
 (rf/reg-event-fx
   :frisco/search!
   (fn [_ [_ q]]
-    {:dispatch [:rn/open-url! (str "https://www.frisco.pl/q," q "/stn,searchResults")]}))
+    {:dispatch [:expo/open-browser (str "https://www.frisco.pl/q," q "/stn,searchResults")]}))
 
 
 (rf/reg-event-fx
   :google/search!
   (fn [_ [_ q]]
-    {:dispatch [:rn/open-url! (str "https://www.google.pl/search?q=" q)]}))
+    {:dispatch [:expo/open-browser (str "https://www.google.pl/search?q=" q)]}))

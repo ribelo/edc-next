@@ -16,6 +16,9 @@
     },
     "ios": {
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.ribelo.EdcNext"
     }
   }
 }

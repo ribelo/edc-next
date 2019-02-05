@@ -15,5 +15,5 @@
      [rnp/snack-bar {:visible    show?
                      :on-dismiss #(rf/dispatch [:snackbar/hide])
                      :action     action
-                     :style      {:margin-bottom 64}}
+                     :style      {:margin-bottom 96}}
       text]]))

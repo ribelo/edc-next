@@ -10,7 +10,6 @@
 (rf/reg-event-fx
   :sync/document->collector
   (fn [{db :db} [_ {:keys [products] :as document}]]
-    (println products)
     {:ws/send {:event  :sync/document->collector
                :params products}}))
 
@@ -19,7 +18,7 @@
   :sync/document->ftp
   (fn [{db :db} [_ {:keys [products] :as document}]]
     {:ws/send {:event  :sync/document->ftp
-               :params products}}))
+               :params (vals products)}}))                  ;TODO!!
 
 
 (rf/reg-event-fx

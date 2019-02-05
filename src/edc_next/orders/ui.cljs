@@ -17,7 +17,8 @@
             [edc-next.orders.creator.ui :as creator.ui]
             [edc-next.orders.settings.ui :as settings.ui]
             [edc-next.orders.import.ui :as import.ui]
-            [edc-next.orders.utils :as u])
+            [edc-next.orders.utils :as u]
+            [edc-next.snackbar.ui :as snackbar.ui])
   (:import (goog.date UtcDateTime)))
 
 
@@ -62,10 +63,10 @@
                                             (case supplier
                                               "ec" (rf/dispatch [:do
                                                                  [:sync/document->collector document]
-                                                                 [:rn/vibrate 100]])
+                                                                 [:snackbar/show "wysłano do ec" :ok]])
                                               "cg" (rf/dispatch [:do
                                                                  [:sync/document->ftp document]
-                                                                 [:rn/vibrate 100]]))
+                                                                 [:snackbar/show "wysłano do cg" :ok]]))
                                             (rf/dispatch [:orders/show-documents-dialog true])))
                          :on-long-press #(rn/alert
                                            ""
@@ -271,8 +272,11 @@
          [products-view]
          [footer-bar]]
         [barcode-scanner])
-      [camera.ui/barcode-scanner-fab]]]))
+      [camera.ui/barcode-scanner-fab]
+      [snackbar.ui/snackbar]]]))
 
 
 (comment
-  @(rf/subscribe [:camera/show-preview?]))
+  @(rf/subscribe [:camera/show-preview?])
+  (rf/dispatch [:snackbar/show "laksdjaj"])
+  )

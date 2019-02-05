@@ -22,7 +22,7 @@
 (rf/reg-event-db
   :server/set-conecting
   (fn [db [_ val]]
-    (if val
+    (if-not (nil? val)
       (sp/setval [:server :_connecting?] val db)
       (sp/transform [:server :_connecting?] not db))))
 
@@ -47,11 +47,11 @@
                                                    [:rn/vibrate 100]
                                                    ]
                                       :halt?      true}
-                                     ;{:when       :seen? :events :sente/make-channel-socket-client!.failure
-                                     ; :dispatch-n [[:server/set-server nil]
-                                     ;              [:server/set-conecting false]
-                                     ;              [:ui/show-snackbar "brak połączenia z serwerem" :ok]]
-                                     ; :halt?      true}
+                                     {:when       :seen? :events :sente/make-channel-socket-client!.failure
+                                      :dispatch-n [[:server/set-server nil]
+                                                   [:server/set-conecting false]
+                                                   [:ui/show-snackbar "brak połączenia z serwerem" :ok]]
+                                      :halt?      true}
                                      ]}})))
 
 

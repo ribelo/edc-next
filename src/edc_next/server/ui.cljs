@@ -9,22 +9,18 @@
 
 
 (defn connection-status-button []
-  (let [color @(rf/subscribe [:theme/get :colors :text])
-        ws-open? @(rf/subscribe [:ws/open?])
-        data-loading? @(rf/subscribe [:server/connecting?])]
-    [rnp/app-bar-action {:icon          (cond
-                                          data-loading?
-                                          (fn []
-                                            (r/as-element [rn/activity-indicator {:animating true
-                                                                                  :color     :black}]))
-                                          (not ws-open?) "cloud-queue"
-                                          ws-open? "cloud-done")
-                         :color         color
-                         :on-press      #(rf/dispatch [:server/show-disconnect-dialog true])
-                         :on-long-press (fn []
-                                          (rf/dispatch [:ui/show-snackbar
-                                                        "wymuszono synchronizację danych!"])
-                                          (rf/dispatch [:data/refresh-all-data]))}]))
+  (let [data-loading? (rf/subscribe [:server/connecting?])
+        ws-open? (rf/subscribe [:ws/open?])]
+    (fn []
+      [rnp/app-bar-action {:icon          (if @ws-open? "cloud-done" "cloud-queue")
+                           :color         (rnp/color :black)
+                           :on-press      #(rf/dispatch [:server/show-disconnect-dialog true])
+                           :on-long-press (fn []
+                                            (rf/dispatch [:do
+                                                          [:ui/show-snackbar
+                                                           "wyczyszczono cache!"]
+                                                          [:db/clear-async-storage!]
+                                                          [:expo.util/reload]]))}])))
 
 
 (defn disconnect-dialog []

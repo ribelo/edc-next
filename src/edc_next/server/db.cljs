@@ -11,7 +11,7 @@
                                                     :host "79.187.160.57:3000"}
                                           "f01752" {:id   "f01752"
                                                     :name "krotoszyce"
-                                                    :host "192.168.1.2:3000"}}
+                                                    :host "79.162.223.194:3390"}}
             :_show-new-server-dialog?    false
             :_show-delete-server-dialog? false
             :_connected-id               nil

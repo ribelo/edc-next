@@ -68,21 +68,25 @@
       (let [show-only-ordered? (sp/select-one [:orders :_show-only-ordered?] db)]
         {:dispatch [:orders/show-only-ordered (not show-only-ordered?)]}))))
 
+(comment
+  (.join (.split "" " ") ".*")
+  )
 
 (rf/reg-event-fx
   :orders/search-product
   (fn [{db :db} [_ search-value]]
-    (let [warehouse (sp/select-one [:warehouse :_products/by-ean] db)]
-      (if (seq search-value)
-        (if (js/isNaN search-value)
+    (let [search-value* (.join (.split search-value " ") ".*")
+          warehouse (sp/select-one [:warehouse :_products/by-ean] db)]
+      (if (seq search-value*)
+        (if (js/isNaN search-value*)
           (let [eans (into [] (keep (fn [[_ product]]
-                                      (when (re-find (js/RegExp. search-value "i") (:name product))
+                                      (when (re-find (js/RegExp. search-value* "i") (:name product))
                                         (:ean product)))) warehouse)]
             {:db (->> db
                       (sp/setval [:orders :_view] eans)
                       (sp/setval [:orders :_show-only-ordered?] false))})
           (let [eans (into [] (keep (fn [[ean _]]
-                                      (when (re-find (js/RegExp. search-value) ean) ean)))
+                                      (when (re-find (js/RegExp. search-value*) ean) ean)))
                            warehouse)]
             {:db (->> db
                       (sp/setval [:orders :_view] eans)

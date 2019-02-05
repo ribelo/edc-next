@@ -190,16 +190,16 @@
                                   {ean {:name name
                                         :id   id
                                         :ean  ean
-                                        :qty  (e/round0 (- optimal (max 0 qty)))}}))
-                           )
+                                        :qty  (e/round0 (- optimal (max 0 qty)))}})))
                          warehouse)]
-      (println (count products))
       {:db               (->> db
                               (sp/setval [:orders :creator :_calculating?] true)
                               (sp/setval [:orders :creator :_show-make-order-dialog?] false))
        :firestore/update {:path       [collection doc-id]
                           :doc        {:products products}
-                          :on-success [:orders.creator/make-market-order.success]}})))
+                          :on-success [:orders.creator/make-market-order.success]}
+       :dispatch-later   [{:dispatch [:snackbar/show "utworzono zamówienie" :ok]
+                           :ms       1000}]})))
 
 
 (rf/reg-event-fx

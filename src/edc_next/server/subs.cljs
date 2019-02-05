@@ -6,7 +6,7 @@
 (rf/reg-sub
   :server/connecting?
   (fn [db _]
-    (:settings db)))
+    (sp/select-one [:server :_connecting?] db)))
 
 
 (rf/reg-sub

@@ -9,6 +9,7 @@
 
 (defn settings-button []
   [rnp/app-bar-action {:icon     "settings"
+                       :color    (rnp/color :black)
                        :on-press #(rf/dispatch [:orders.settings/show-settings-dialog true])}])
 
 

@@ -25,3 +25,9 @@
      (ocall expo/speech "speek" text (clj->js opts)))
     ([text]
      (ocall expo/speech "speek" text))))
+
+
+(rf/reg-fx
+  :expo.util/reload
+  (fn [val]
+    (when val (ocall expo/util "reload"))))

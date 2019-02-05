@@ -15,8 +15,9 @@
                              :event ::event))
 
 
-(defmulti -change-state-handler (fn [{:keys [first-open? open?]}]
-                                  [first-open? open?]))
+(defmulti -change-state-handler
+          (fn [{:keys [first-open? open?]}]
+            [first-open? open?]))
 
 
 (defmethod -change-state-handler :default

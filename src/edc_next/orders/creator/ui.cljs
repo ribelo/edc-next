@@ -11,6 +11,7 @@
 (defn create-order-button []
   (let [doc-id @(rf/subscribe [:orders/selected-document.id])]
     [rnp/app-bar-action {:icon          "create"
+                         :color         (rnp/color :black)
                          :on-press      (fn []
                                           (if doc-id
                                             (rf/dispatch [:orders.creator/show-make-order-dialog true])

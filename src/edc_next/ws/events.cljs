@@ -19,6 +19,12 @@
 
 
 (rf/reg-event-fx
+  :chsk/state
+  (fn [_ [_ ?data]]
+    (timbre/info "state:" ?data)))
+
+
+(rf/reg-event-fx
   :ws-no-on-success
   (fn [_ [_ event]]
     (timbre/warn :ws-no-on-success event)))

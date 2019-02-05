@@ -20,25 +20,37 @@
 
 (defn view []
   (let [theme @(rf/subscribe [:theme/get])
-        servers @(rf/subscribe [:server/servers.by-id])]
-    [rnp/provider {:theme theme}
-     [server.ui/new-server-dialog]
-     [rn/view {:style {:flex            1
-                       :justify-content :center
-                       :align-items     :center}}
-      (doall
-        (for [[id {:keys [name host]}] servers]
-          ^{:key id}
-          [rnp/card {:style         {:width  "50%"
-                                     :height 100
-                                     :margin 16}
-                     :on-press      #(rf/dispatch [:server/connect id])
-                     :on-long-press #(rf/dispatch [:server/delete-server id])}
-           [rnp/card-content
-            [rnp/title {:style {:text-align :center}} name]
-            [rnp/paragraph {:style {:text-align :center}} host]]]))
-      [rnp/button {:on-press (fn [_]
-                               (rf/dispatch-sync [:server/show-new-server-dialog true])
-                               (r/flush))}
-       "dodaj"]
-      [snackbar.ui/snackbar]]]))
+        servers @(rf/subscribe [:server/servers.by-id])
+        conecting? @(rf/subscribe [:server/connecting?])]
+    (if-not conecting?
+      [rnp/provider {:theme theme}
+       [server.ui/new-server-dialog]
+       [rn/view {:style {:flex            1
+                         :justify-content :center
+                         :align-items     :center}}
+        (doall
+          (for [[id {:keys [name host]}] servers]
+            ^{:key id}
+            [rnp/card {:style         {:width  "50%"
+                                       :height 100
+                                       :margin 16}
+                       :on-press      #(rf/dispatch [:server/connect id])
+                       :on-long-press #(rf/dispatch [:server/delete-server id])}
+             [rnp/card-content
+              [rnp/title {:style {:text-align :center}} name]
+              [rnp/paragraph {:style {:text-align :center}} host]]]))
+        [rnp/button {:on-press (fn [_]
+                                 (rf/dispatch-sync [:server/show-new-server-dialog true])
+                                 (r/flush))}
+         "dodaj"]
+        [snackbar.ui/snackbar]]]
+      [rn/view {:style {:flex            1
+                        :align-items     :center
+                        :justify-content :center}}
+       [rn/activity-indicator {:animating true
+                               :color     :black
+                               :size      :large}]])))
+
+(comment
+  (rf/subscribe [:snackbar/show?])
+  )

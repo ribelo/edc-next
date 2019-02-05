@@ -22,8 +22,9 @@
                            :on-press (fn []
                                        (rf/dispatch [:do
                                                      [:sync/ftp->collector file]
-                                                     [:rn/vibrate 100]
-                                                     [:snackbar/show "odebrano mm z ftp" :ok]]))}]))]
+                                                     [:snackbar/show "odebrano mm z ftp" :ok]
+                                                     [:orders.import/show-import-dialog false]]))}]))]
       [rnp/dialog-actions
+       ;TODO delete all
        [rnp/button {:on-press #(rf/dispatch [:orders.import/show-import-dialog false])}
         "anuluj"]]]]))

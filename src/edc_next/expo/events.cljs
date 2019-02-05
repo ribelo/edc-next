@@ -7,3 +7,9 @@
             [edc-next.rn.core :as rn]
             [edc-next.rnp.core :as rnp]
             [edc-next.expo.core :as expo]))
+
+
+(rf/reg-event-fx
+  :expo.util/reload
+  (fn [_ _]
+    {:expo.util/reload true}))
